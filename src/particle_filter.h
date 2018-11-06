@@ -1,11 +1,3 @@
-/*
- * particle_filter.h
- *
- * 2D particle filter class.
- *  Created on: Dec 12, 2016
- *      Author: Tiffany Huang
- */
-
 #ifndef PARTICLE_FILTER_H_
 #define PARTICLE_FILTER_H_
 
@@ -23,30 +15,20 @@ struct Particle {
 	std::vector<double> sense_y;
 };
 
-
-
 class ParticleFilter {
-	
 	// Number of particles to draw
 	int num_particles; 
-	
-	
-	
 	// Flag, if filter is initialized
 	bool is_initialized;
-	
 	// Vector of weights of all particles
 	std::vector<double> weights;
-	
+	std::default_random_engine random;
 public:
-	
 	// Set of current particles
 	std::vector<Particle> particles;
-
 	// Constructor
 	// @param num_particles Number of particles
 	ParticleFilter() : num_particles(0), is_initialized(false) {}
-
 	// Destructor
 	~ParticleFilter() {}
 
@@ -70,7 +52,7 @@ public:
 	 * @param velocity Velocity of car from t to t+1 [m/s]
 	 * @param yaw_rate Yaw rate of car from t to t+1 [rad/s]
 	 */
-	void prediction(double delta_t, double std_pos[], double velocity, double yaw_rate);
+	void prediction(double dt, double std_pos[], double velocity, double yaw_rate);
 	
 	/**
 	 * dataAssociation Finds which observations correspond to which landmarks (likely by using
@@ -116,7 +98,5 @@ public:
 		return is_initialized;
 	}
 };
-
-
 
 #endif /* PARTICLE_FILTER_H_ */

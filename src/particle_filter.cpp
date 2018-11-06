@@ -1,10 +1,3 @@
-/*
- * particle_filter.cpp
- *
- *  Created on: Dec 12, 2016
- *      Author: Tiffany Huang
- */
-
 #include <random>
 #include <algorithm>
 #include <iostream>
@@ -17,7 +10,6 @@
 
 #include "particle_filter.h"
 
-using namespace std;
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// TODO: Set the number of particles. Initialize all particles to first position (based on estimates of 
@@ -25,14 +17,46 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// Add random Gaussian noise to each particle.
 	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
 
+	std::normal_distribution<double> dist_x(x, std[0]);
+	std::normal_distribution<double> dist_y(y, std[1]);
+	std::normal_distribution<double> dist_theta(theta, std[2]);
+
+	for (int i = 0; i < 100; ++i) {
+		Particle particle;
+		particle.id = i;
+		particle.x = dist_x(random);
+		particle.y = dist_y(random);
+		particle.theta = dist_theta(random);
+		particle.weight = 1.0;
+		
+		particles.push_back(particle);
+		weights.push_back(particle.weight);
+	}
+
+	is_initialized = true;
 }
 
-void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
+void ParticleFilter::prediction(double dt, double std_pos[], double velocity, double yaw_rate) {
 	// TODO: Add measurements to each particle and add random Gaussian noise.
 	// NOTE: When adding noise you may find std::normal_distribution and std::default_random_engine useful.
 	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
 
+	double temp = velocity / yaw_rate;
+	double delta_theta = yaw_rate * dt;
+	std::normal_distribution<double> dist_theta(delta_theta, std_pos[2]);
+
+	for (Particle& particle : particles) {
+		double delta_x = temp * (std::sin(particle.theta + delta_theta) - std::sin(particle.theta));
+		double delta_y = temp * (std::cos(particle.theta) - std::cos(particle.theta + delta_theta));
+
+		std::normal_distribution<double> dist_x(delta_x, std_pos[0]);
+		std::normal_distribution<double> dist_y(delta_y, std_pos[1]);
+
+		particle.x += dist_x(random);
+		particle.y += dist_y(random);
+		particle.theta += dist_theta(random);
+	}
 }
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
@@ -77,30 +101,32 @@ Particle ParticleFilter::SetAssociations(Particle& particle, const std::vector<i
     particle.sense_y = sense_y;
 }
 
-string ParticleFilter::getAssociations(Particle best)
+std::string ParticleFilter::getAssociations(Particle best)
 {
-	vector<int> v = best.associations;
-	stringstream ss;
-    copy( v.begin(), v.end(), ostream_iterator<int>(ss, " "));
-    string s = ss.str();
+	std::vector<int> v = best.associations;
+	std::stringstream ss;
+    copy( v.begin(), v.end(), std::ostream_iterator<int>(ss, " "));
+    std::string s = ss.str();
     s = s.substr(0, s.length()-1);  // get rid of the trailing space
     return s;
 }
-string ParticleFilter::getSenseX(Particle best)
+
+std::string ParticleFilter::getSenseX(Particle best)
 {
-	vector<double> v = best.sense_x;
-	stringstream ss;
-    copy( v.begin(), v.end(), ostream_iterator<float>(ss, " "));
-    string s = ss.str();
+	std::vector<double> v = best.sense_x;
+	std::stringstream ss;
+    copy( v.begin(), v.end(), std::ostream_iterator<float>(ss, " "));
+    std::string s = ss.str();
     s = s.substr(0, s.length()-1);  // get rid of the trailing space
     return s;
 }
-string ParticleFilter::getSenseY(Particle best)
+
+std::string ParticleFilter::getSenseY(Particle best)
 {
-	vector<double> v = best.sense_y;
-	stringstream ss;
-    copy( v.begin(), v.end(), ostream_iterator<float>(ss, " "));
-    string s = ss.str();
+	std::vector<double> v = best.sense_y;
+	std::stringstream ss;
+    copy( v.begin(), v.end(), std::ostream_iterator<float>(ss, " "));
+    std::string s = ss.str();
     s = s.substr(0, s.length()-1);  // get rid of the trailing space
     return s;
 }

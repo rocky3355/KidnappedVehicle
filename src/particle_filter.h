@@ -4,7 +4,6 @@
 #include "helper_functions.h"
 
 struct Particle {
-
 	int id;
 	double x;
 	double y;
@@ -21,8 +20,20 @@ class ParticleFilter {
 	// Flag, if filter is initialized
 	bool is_initialized;
 	// Vector of weights of all particles
-	std::vector<double> weights;
+	//std::vector<double> weights;
 	std::default_random_engine random;
+	
+	void transform(const std::vector<LandmarkObs>& observations, const Particle& p, std::vector<LandmarkObs>& observations_map);
+
+	void filterLandmarks(const Map &map_landmarks, const Particle& p, double sensor_range_squared, std::vector<Map::single_landmark_s>& valid_landmarks);
+
+	/**
+	 * dataAssociation Finds which observations correspond to which landmarks (likely by using
+	 *   a nearest-neighbors data association).
+	 * @param predicted Vector of predicted landmark observations
+	 * @param observations Vector of landmark observations
+	 */
+	void dataAssociation(const std::vector<Map::single_landmark_s>& landmarks, std::vector<LandmarkObs>& observations);
 public:
 	// Set of current particles
 	std::vector<Particle> particles;
@@ -55,14 +66,6 @@ public:
 	void prediction(double dt, double std_pos[], double velocity, double yaw_rate);
 	
 	/**
-	 * dataAssociation Finds which observations correspond to which landmarks (likely by using
-	 *   a nearest-neighbors data association).
-	 * @param predicted Vector of predicted landmark observations
-	 * @param observations Vector of landmark observations
-	 */
-	void dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations);
-	
-	/**
 	 * updateWeights Updates the weights for each particle based on the likelihood of the 
 	 *   observed measurements. 
 	 * @param sensor_range Range [m] of sensor
@@ -83,7 +86,7 @@ public:
 	 * Set a particles list of associations, along with the associations calculated world x,y coordinates
 	 * This can be a very useful debugging tool to make sure transformations are correct and assocations correctly connected
 	 */
-	Particle SetAssociations(Particle& particle, const std::vector<int>& associations,
+	void setAssociations(Particle& particle, const std::vector<int>& associations,
 		                     const std::vector<double>& sense_x, const std::vector<double>& sense_y);
 
 	
